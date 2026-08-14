@@ -54,8 +54,17 @@ export const useWallet = create<WalletState>()((set) => ({
     if (typeof accounts === "string") {
       throw new Error("This wallet is not compatible with the Starknet Wallet API.");
     }
+    let chainId = (await walletV6.requestChainId(w)) as string;
+    const want = SNconstants.StarknetChainId.SN_SEPOLIA;
+    if (chainId !== want) {
+      try {
+        await wa.switchStarknetChain(want);
+        chainId = (await walletV6.requestChainId(w)) as string;
+      } catch {
+        /* Ready may require a manual network switch */
+      }
+    }
     const address = validateAndParseAddress(accounts[0]);
-    const chainId = (await walletV6.requestChainId(w)) as string;
     set({
       wallet: w,
       account: wa,
@@ -64,12 +73,9 @@ export const useWallet = create<WalletState>()((set) => ({
       connected: true,
       error: "",
     });
-    if (
-      chainId !== SNconstants.StarknetChainId.SN_SEPOLIA &&
-      chainId !== SNconstants.StarknetChainId.SN_MAIN
-    ) {
+    if (chainId !== want) {
       set({
-        error: `Switch Ready to Sepolia (or Mainnet). Got chain ${chainId}.`,
+        error: `Ready is on ${chainId}. Open Ready and switch the network to Sepolia, then reconnect.`,
       });
     }
   },
