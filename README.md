@@ -31,6 +31,15 @@ cd cairo && scarb build && snforge test
 npm run dev
 ```
 
+### Test the full loop (Sepolia)
+
+1. Ready on **Sepolia**. Faucet STRK. `/lab` → shield.
+2. `/me` → keystore → sign enrollment (set the company address) → send the JSON to company (same browser is fine).
+3. `/company` → deploy helper → paste enrollment → CSV with **registered** recipient addresses → execute → issue credentials.
+4. `/me` → load issued credential → open + present.
+5. `/audit` → recompute book. Still unverified: leaves ≠ notes.
+6. `/runs/:id` shows count and root only.
+
 Then open [localhost:3000/lab](http://localhost:3000/lab):
 
 1. Switch Ready to **Sepolia**

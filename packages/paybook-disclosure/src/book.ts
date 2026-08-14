@@ -66,6 +66,38 @@ export function proofFor(book: BuiltBook, index: number) {
   return merkleProof(book.commits, index);
 }
 
+export function hydrateBook(raw: {
+  runId: string;
+  bookRoot: string;
+  attestedTotal: string | bigint;
+  commits: string[];
+  leaves: Array<{
+    runId: string;
+    index: number;
+    recipient: string;
+    token: string;
+    amount: string | bigint;
+    memo: string;
+    salt: string;
+  }>;
+}): BuiltBook {
+  return {
+    runId: raw.runId as BuiltBook["runId"],
+    bookRoot: raw.bookRoot as BuiltBook["bookRoot"],
+    attestedTotal: BigInt(raw.attestedTotal),
+    commits: raw.commits as BuiltBook["commits"],
+    leaves: raw.leaves.map((l) => ({
+      runId: l.runId as BuiltBook["runId"],
+      index: l.index,
+      recipient: l.recipient as BuiltBook["leaves"][0]["recipient"],
+      token: l.token as BuiltBook["leaves"][0]["token"],
+      amount: BigInt(l.amount),
+      memo: l.memo,
+      salt: l.salt as BuiltBook["leaves"][0]["salt"],
+    })),
+  };
+}
+
 export function verifyBookInternal(book: BuiltBook): { ok: true } | { ok: false; reason: string } {
   if (book.leaves.length !== book.commits.length) return { ok: false, reason: "length mismatch" };
   const sum = book.leaves.reduce((s, l) => s + l.amount, 0n);

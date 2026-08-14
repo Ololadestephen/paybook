@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { num } from "starknet";
-import { parsePayrollCsv, type PaybookEnrollmentV1 } from "@paybook/disclosure";
+import { hydrateBook, parsePayrollCsv, type PaybookEnrollmentV1 } from "@paybook/disclosure";
 import { assertNonceUnused, type JournalEntry } from "@paybook/sdk";
 import { loadJson, saveJson } from "@/lib/storage";
+import { downloadJson } from "@/lib/download";
+import { issueRunCredentials, type StoredRun } from "@/lib/issue";
 import ConnectWallet from "@/components/ConnectWallet";
 import { useWallet } from "@/lib/wallet";
 import { makeProvider, net, STRK } from "@/lib/network";
@@ -34,6 +36,8 @@ export default function CompanyPage() {
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [txHash, setTxHash] = useState("");
+  const [lastRunId, setLastRunId] = useState("");
+  const [asAuditor, setAsAuditor] = useState(false);
 
   useEffect(() => {
     const stored = loadJson<string>("helper", ENV_HELPER);
@@ -80,9 +84,14 @@ export default function CompanyPage() {
       const list = JSON.parse(enrollRaw) as PaybookEnrollmentV1 | PaybookEnrollmentV1[];
       const items = Array.isArray(list) ? list : [list];
       const existing = loadJson<PaybookEnrollmentV1[]>("enrollments", []);
-      saveJson("enrollments", [...existing, ...items]);
-      setEnrollCount(existing.length + items.length);
-      setMsg(`Stored ${items.length} enrollment(s) on this machine. Not published.`);
+      if (asAuditor) {
+        saveJson("auditorEnrollment", items[0]);
+        setMsg("Stored auditor enrollment on this machine. Not published.");
+      } else {
+        saveJson("enrollments", [...existing, ...items]);
+        setEnrollCount(existing.length + items.length);
+        setMsg(`Stored ${items.length} staff enrollment(s) on this machine. Not published.`);
+      }
     } catch (e) {
       setMsg(errMsg(e));
     }
@@ -178,7 +187,54 @@ export default function CompanyPage() {
         retries: 200,
         retryInterval: 3000,
       });
-      setMsg(`Run landed. Public page does not list names or amounts.`);
+      setLastRunId(prepared.book.runId);
+      saveJson("lastRunId", prepared.book.runId);
+      setMsg("Run landed. Issue credentials next — still off-chain, still not a roster.");
+    } catch (e) {
+      setMsg(errMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function issueCreds() {
+    if (!account) {
+      setMsg("Connect Ready to sign credentials.");
+      return;
+    }
+    const id = lastRunId || loadJson<string>("lastRunId", "");
+    const stored = loadJson<StoredRun | null>(id ? `run:${id}` : "", null);
+    if (!stored) {
+      setMsg("No landed run in this browser yet.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const book = hydrateBook(stored.book);
+      const issued = await issueRunCredentials({
+        account,
+        company,
+        helper,
+        chainId: CHAIN,
+        book,
+        enrollments: loadJson<PaybookEnrollmentV1[]>("enrollments", []),
+        auditor: loadJson<PaybookEnrollmentV1 | null>("auditorEnrollment", null),
+      });
+      saveJson("issuedPayments", [
+        ...loadJson("issuedPayments", []),
+        ...issued.payments,
+      ]);
+      if (issued.book) {
+        saveJson("issuedBooks", [...loadJson("issuedBooks", []), issued.book]);
+        downloadJson(`paybook-book-${book.runId.slice(0, 10)}.json`, issued.book);
+      }
+      if (issued.payments[0]) {
+        downloadJson(`paybook-payment-${book.runId.slice(0, 10)}.json`, issued.payments[0]);
+      }
+      setMsg(
+        `Issued ${issued.payments.length} payment credential(s)` +
+          (issued.book ? " and one book credential." : ". No auditor enrollment stored."),
+      );
     } catch (e) {
       setMsg(errMsg(e));
     } finally {
@@ -271,10 +327,21 @@ export default function CompanyPage() {
         <div className="card">
           <label>Paste PaybookEnrollmentV1 (never published)</label>
           <textarea value={enrollRaw} onChange={(e) => setEnrollRaw(e.target.value)} className="mono" />
-          <button className="ghost" type="button" onClick={ingestEnrollments}>
-            Store enrollment locally
-          </button>
-          <p className="hint">{enrollCount} enrollment(s) on this machine.</p>
+          <label>
+            <input
+              type="checkbox"
+              checked={asAuditor}
+              onChange={(e) => setAsAuditor(e.target.checked)}
+              style={{ width: "auto" }}
+            />{" "}
+            This enrollment is the auditor
+          </label>
+          <p>
+            <button className="ghost" type="button" onClick={ingestEnrollments}>
+              Store enrollment locally
+            </button>
+          </p>
+          <p className="hint">{enrollCount} staff enrollment(s) on this machine. Never published.</p>
         </div>
 
         <div className="card">
@@ -312,6 +379,14 @@ export default function CompanyPage() {
       <p style={{ marginTop: "1rem" }}>
         <button type="button" disabled={!isConnected || !prepared || busy} onClick={execute}>
           {busy ? "Waiting on Ready…" : "Execute payroll"}
+        </button>{" "}
+        <button
+          className="ghost"
+          type="button"
+          disabled={!isConnected || busy}
+          onClick={issueCreds}
+        >
+          Issue credentials for last run
         </button>
       </p>
       {msg && <p className="hint">{msg}</p>}
