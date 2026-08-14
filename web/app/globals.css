@@ -1,0 +1,78 @@
+:root {
+  --ink: #14110d;
+  --paper: #f4efe4;
+  --rule: #d6cdb8;
+  --mute: #6e6658;
+  --seal: #9a6b2f;
+  --ok: #2f6b4f;
+  --bad: #8b2e2e;
+  --card: #fffdf7;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+}
+a { color: inherit; }
+code, pre, .mono {
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-size: 0.86em;
+}
+header.app {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+header.app nav { display: flex; gap: 1rem; font-size: 0.95rem; }
+header.app a { text-decoration: none; color: var(--mute); }
+header.app a:hover, header.app a.active { color: var(--ink); }
+main { max-width: 880px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+h1 { font-weight: 600; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+.lede { color: var(--mute); max-width: 40rem; }
+.claim {
+  border-left: 3px solid var(--seal);
+  padding: 0.6rem 0 0.6rem 1rem;
+  margin: 1.5rem 0;
+}
+.grid { display: grid; gap: 1rem; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  padding: 1rem 1.1rem;
+}
+label { display: block; font-size: 0.85rem; color: var(--mute); margin-bottom: 0.25rem; }
+input, textarea, select, button {
+  font: inherit;
+  color: inherit;
+}
+input, textarea, select {
+  width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 0.45rem 0.55rem;
+}
+textarea { min-height: 8rem; }
+button {
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+}
+button.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+}
+.ok { color: var(--ok); }
+.bad { color: var(--bad); }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 0.35rem 0.4rem; border-bottom: 1px solid var(--rule); }
+.hint { color: var(--mute); font-size: 0.88rem; }
+.break { word-break: break-all; }

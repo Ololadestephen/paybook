@@ -1,0 +1,24 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@paybook/disclosure": "0.1.0",
+    "@paybook/sdk": "0.1.0",
+    "@starknet-io/get-starknet": "^4.0.8",
+    "next": "^16.0.8",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "starknet": "10.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.2",
+    "@types/react": "19.2.7",
+    "typescript": "^5.9.3"
+  }
+}
