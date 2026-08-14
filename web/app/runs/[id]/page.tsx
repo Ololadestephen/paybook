@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { loadJson } from "@/lib/storage";
 import type { PublicRunView } from "@paybook/sdk";
+import { net } from "@/lib/network";
 
 export default function RunPage() {
   const params = useParams<{ id: string }>();
@@ -39,6 +40,16 @@ export default function RunPage() {
               <th>token</th>
               <td className="mono break">{view.token}</td>
             </tr>
+            {view.txHash && (
+              <tr>
+                <th>transaction</th>
+                <td className="mono break">
+                  <a href={net.explorerTx(view.txHash)} target="_blank" rel="noreferrer">
+                    {view.txHash}
+                  </a>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       )}

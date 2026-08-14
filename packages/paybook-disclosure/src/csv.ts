@@ -54,15 +54,13 @@ export function parsePayrollCsv(text: string): { rows: PayrollInput[]; issues: C
   return { rows, issues };
 }
 
-function parseAmount(raw: string): bigint {
-  const s = raw.replace(/_/g, "").trim();
-  if (/^\d+$/.test(s)) return BigInt(s);
-  if (/^\d+\.\d+$/.test(s)) {
-    const [w, f] = s.split(".");
-    const frac = f.padEnd(18, "0").slice(0, 18);
-    return BigInt(w) * 10n ** 18n + BigInt(frac);
-  }
-  throw new Error("bad amount");
+/** Payroll CSV amounts are human token units (1 = 1 STRK), 18 decimals. */
+export function parseAmount(raw: string): bigint {
+  const s = raw.replace(/_/g, "").replace(/,/g, "").trim();
+  if (!/^\d+(\.\d+)?$/.test(s)) throw new Error("bad amount");
+  const [w, f = ""] = s.split(".");
+  const frac = f.padEnd(18, "0").slice(0, 18);
+  return BigInt(w) * 10n ** 18n + BigInt(frac);
 }
 
 function splitCsvLine(line: string): string[] {

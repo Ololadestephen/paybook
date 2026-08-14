@@ -299,6 +299,19 @@ describe("credential + presentation", () => {
   });
 });
 
+describe("csv amounts", () => {
+  it("reads 1 / 2 / 5 as whole STRK", async () => {
+    const { parsePayrollCsv } = await import("./csv.js");
+    const { rows, issues } = parsePayrollCsv(
+      "recipient,amount,memo\n0x1,1,aug\n0x2,2.5,aug\n0x3,5,aug",
+    );
+    expect(issues).toEqual([]);
+    expect(rows[0].amount).toBe(10n ** 18n);
+    expect(rows[1].amount).toBe(25n * 10n ** 17n);
+    expect(rows[2].amount).toBe(5n * 10n ** 18n);
+  });
+});
+
 describe("leaf commit stability", () => {
   it("is domain-separated", () => {
     const a = leafCommit({

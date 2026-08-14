@@ -12,12 +12,12 @@ export function publishRunCalldata(args: {
   ciphertextHash: string;
 }): string[] {
   return [
-    OP_PUBLISH_RUN.toString(),
+    toHex(OP_PUBLISH_RUN),
     toHex(toBig(args.runId)),
     toHex(toBig(args.token)),
-    args.recipientCount.toString(),
+    toHex(args.recipientCount),
     toHex(toBig(args.bookRoot)),
-    args.attestedTotal.toString(),
+    toHex(args.attestedTotal),
     toHex(toBig(args.ciphertextHash)),
   ];
 }

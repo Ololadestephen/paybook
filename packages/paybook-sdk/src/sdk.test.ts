@@ -50,7 +50,7 @@ describe("invoke calldata", () => {
       attestedTotal: 8n,
       ciphertextHash: "0x222",
     });
-    expect(data[0]).toBe("1");
+    expect(data[0]).toBe("0x1");
     expect(data.join(",")).not.toContain("0x333");
   });
 });
