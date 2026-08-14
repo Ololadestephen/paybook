@@ -20,7 +20,9 @@ Inspired by RFP-11 and IDEA-21.
 
 Salaries do **not** go through `privacy_invoke`. The helper only commits the book.
 
-## Develop
+## Develop (Sepolia first)
+
+Sprint prizes need mainnet hashes. We still build and practice on **Sepolia** so we do not burn real STRK or hit a missing mainnet prover URL.
 
 ```bash
 npm install
@@ -29,7 +31,13 @@ cd cairo && scarb build && snforge test
 npm run dev
 ```
 
-Needs Node 24+ for some STRK20 SDK paths later; the disclosure package runs on current Node.
+Then open [localhost:3000/lab](http://localhost:3000/lab):
+
+1. Switch Ready to **Sepolia**
+2. Get test STRK from the [Sepolia faucet](https://starknet-faucet.vercel.app/)
+3. Connect Ready → Shield 1 STRK → private self-transfer 1 STRK
+
+`NEXT_PUBLIC_NETWORK` defaults to `sepolia`. Do not flip it to `mainnet` until that loop works.
 
 ## License
 

@@ -13,8 +13,11 @@ import {
   type PaybookCredentialV1,
 } from "@paybook/disclosure";
 import { loadJson, saveJson } from "@/lib/storage";
+import ConnectWallet from "@/components/ConnectWallet";
+import { useWallet } from "@/lib/wallet";
 
 export default function MePage() {
+  const { address: connected } = useWallet();
   const [pass, setPass] = useState("");
   const [msg, setMsg] = useState("");
   const [enrollPreview, setEnrollPreview] = useState("");
@@ -44,7 +47,7 @@ export default function MePage() {
       return;
     }
     const td = enrollmentTypedData({
-      employeeAddress: "0x0",
+      employeeAddress: connected || "0x0",
       company: "0x0",
       disclosurePublicKey,
       nonce: "0x1",
@@ -86,6 +89,9 @@ export default function MePage() {
       <p className="lede">
         Random X25519 / Ed25519 keys, wrapped with your passphrase. Wallet signatures
         authenticate. They do not wrap the key.
+      </p>
+      <p>
+        <ConnectWallet />
       </p>
       <div className="grid">
         <div className="card">

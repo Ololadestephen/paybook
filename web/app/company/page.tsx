@@ -9,12 +9,16 @@ import {
 } from "@paybook/disclosure";
 import { publishRunCalldata, recordPrepared, toPublicRun, type JournalEntry } from "@paybook/sdk";
 import { loadJson, saveJson } from "@/lib/storage";
+import ConnectWallet from "@/components/ConnectWallet";
+import { useWallet } from "@/lib/wallet";
+import { net } from "@/lib/network";
 
 const HELPER = process.env.NEXT_PUBLIC_PAYBOOK_HELPER ?? "0x0";
 const TOKEN = process.env.NEXT_PUBLIC_TOKEN ?? "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 const CHAIN = process.env.NEXT_PUBLIC_CHAIN_ID ?? "SN_SEPOLIA";
 
 export default function CompanyPage() {
+  const { address: connected } = useWallet();
   const [company, setCompany] = useState("0x0");
   const [csv, setCsv] = useState("recipient,amount,memo\n0x1,1,2026-08\n0x2,2,2026-08\n0x3,5,2026-08");
   const [enrollRaw, setEnrollRaw] = useState("");
@@ -89,6 +93,17 @@ export default function CompanyPage() {
         builds the book and invoke calldata; paying still needs a Ready wallet and
         the live pool.
       </p>
+      <p>
+        <ConnectWallet />
+      </p>
+      {connected && company === "0x0" && (
+        <p className="hint">
+          Connected {connected}.{" "}
+          <button className="ghost" type="button" onClick={() => setCompany(connected)}>
+            Use as company address
+          </button>
+        </p>
+      )}
       <div className="grid">
         <div className="card">
           <label>Company address</label>
@@ -133,7 +148,9 @@ export default function CompanyPage() {
         </button>
       </p>
       {msg && <p className="hint">{msg}</p>}
-      <p className="hint">Helper {HELPER} · chain {CHAIN}</p>
+      <p className="hint">
+        Network {net.name} · helper {HELPER} · chain {CHAIN}
+      </p>
     </main>
   );
 }

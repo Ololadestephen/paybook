@@ -15,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="app">
           <Link href="/">Paybook</Link>
           <nav>
+            <Link href="/lab">Sepolia lab</Link>
             <Link href="/company">Company</Link>
             <Link href="/me">Employee</Link>
             <Link href="/audit">Auditor</Link>
