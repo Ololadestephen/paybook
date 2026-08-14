@@ -21,7 +21,7 @@ export default function LabPage() {
   const [busy, setBusy] = useState(false);
   const [balances, setBalances] = useState("");
   const [diag, setDiag] = useState("");
-  const [deployed, setDeployed] = useState<boolean | null>(null);
+  const [deployed, setDeployed] = useState<"yes" | "no" | "rpc_error" | null>(null);
   const [pubStrk, setPubStrk] = useState<string>("");
 
   function push(r: Receipt) {
@@ -52,7 +52,13 @@ export default function LabPage() {
       try {
         const isDeployed = await accountDeployed(address);
         if (!cancelled) setDeployed(isDeployed);
-        lines.push(isDeployed ? "account is deployed on Sepolia" : "account is NOT deployed on Sepolia — faucet STRK first");
+        lines.push(
+          isDeployed === "yes"
+            ? "account is deployed on Sepolia"
+            : isDeployed === "rpc_error"
+              ? "could not reach Sepolia RPC (not the same as undeployed)"
+              : "account is NOT deployed on Sepolia — faucet STRK first",
+        );
         const pub = await publicStrkBalance(address);
         if (!cancelled) setPubStrk(fmtStrk(pub));
         lines.push(`public STRK ${fmtStrk(pub)}`);
@@ -165,28 +171,29 @@ export default function LabPage() {
         <div className="card">
           <strong>Before you shield</strong>
           <ol className="hint">
-            <li>Ready network = Sepolia (new account — not your mainnet one).</li>
+            <li>Ready network = Sepolia.</li>
             <li>
-              Get Sepolia STRK from the{" "}
-              <a href={net.faucet} target="_blank" rel="noreferrer">
-                faucet
-              </a>
-              . Wait until Ready shows a public STRK balance.
-            </li>
-            <li>
-              Optional: register once at{" "}
+              Public STRK on this account is checked below. If Ready still 500s on
+              prepare/invoke/balances, that is their privacy server — try{" "}
               <a href="https://strk20.starknet.io/app" target="_blank" rel="noreferrer">
                 strk20.starknet.io/app
               </a>{" "}
-              on Sepolia if Ready returns NOT_REGISTERED.
+              on the same network. If that 500s too, Sepolia proving in Ready is down;
+              Day 0 has to be a tiny mainnet shield in that app.
             </li>
           </ol>
           <p className="hint mono break">Pool {net.pool}</p>
           {connected && address && (
             <p>
               Account:{" "}
-              <b className={deployed === false ? "bad" : deployed ? "ok" : ""}>
-                {deployed === null ? "checking…" : deployed ? "deployed on Sepolia" : "not deployed"}
+              <b className={deployed === "no" ? "bad" : deployed === "yes" ? "ok" : ""}>
+                {deployed === null
+                  ? "checking…"
+                  : deployed === "yes"
+                    ? "deployed on Sepolia"
+                    : deployed === "rpc_error"
+                      ? "RPC failed — not the same as undeployed"
+                      : "not deployed"}
               </b>
               {pubStrk !== "" && ` · public ${pubStrk} STRK`}
               <br />

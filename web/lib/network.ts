@@ -9,7 +9,7 @@ export const SEPOLIA = {
   name: "Sepolia",
   chainId: constants.StarknetChainId.SN_SEPOLIA,
   chainIdHex: "0x534e5f5345504f4c4941",
-  rpc: process.env.NEXT_PUBLIC_RPC_URL ?? "https://rpc.starknet-sepolia.lava.build",
+  rpc: process.env.NEXT_PUBLIC_RPC_URL ?? "https://starknet-sepolia-rpc.publicnode.com",
   pool: "0x0254a6b2997ef52e9f830ce1f543f6b29768295e8d17e2267d672c552cfe0d91",
   explorerTx: (h: string) => `https://sepolia.voyager.online/tx/${h}`,
   explorerAddr: (a: string) => `https://sepolia.voyager.online/contract/${a}`,

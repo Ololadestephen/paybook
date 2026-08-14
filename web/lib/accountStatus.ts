@@ -13,11 +13,17 @@ export async function publicStrkBalance(address: string): Promise<bigint> {
   return low + (high << 128n);
 }
 
-export async function accountDeployed(address: string): Promise<boolean> {
+export type DeployState = "yes" | "no" | "rpc_error";
+
+export async function accountDeployed(address: string): Promise<DeployState> {
   try {
     await makeProvider().getClassHashAt(address);
-    return true;
-  } catch {
-    return false;
+    return "yes";
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/not found|CONTRACT_NOT_FOUND|20/i.test(msg) && !/fetch|network|CORS/i.test(msg)) {
+      return "no";
+    }
+    return "rpc_error";
   }
 }
