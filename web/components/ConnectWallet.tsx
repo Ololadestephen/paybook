@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { shortAddr, useWallet, watchStarknetWallets, type DiscoveredWallet } from "@/lib/wallet";
 import { net } from "@/lib/network";
 
-export default function ConnectWallet() {
+export default function ConnectWallet({
+  compact,
+  cinematic,
+}: {
+  compact?: boolean;
+  cinematic?: boolean;
+}) {
   const { connected, address, chainId, connecting, error, connect, disconnect, setConnecting, setError } =
     useWallet();
   const [open, setOpen] = useState(false);
@@ -27,6 +33,8 @@ export default function ConnectWallet() {
     }
   }
 
+  const ghost = cinematic || compact ? "ghost" : "";
+
   if (connected && address) {
     const onSepolia = chainId.toLowerCase().includes("534e5f5345504f4c4941") || chainId === "SN_SEPOLIA";
     return (
@@ -45,7 +53,7 @@ export default function ConnectWallet() {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)}>
+      <button className={ghost} type="button" onClick={() => setOpen(true)}>
         Connect Ready
       </button>
       {open && (

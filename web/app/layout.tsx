@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Newsreader, IBM_Plex_Mono } from "next/font/google";
+import SiteFrame from "@/components/SiteFrame";
 import "./globals.css";
+
+const serif = Newsreader({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-serif",
+  style: ["normal", "italic"],
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "Paybook",
@@ -10,19 +25,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${serif.variable} ${mono.variable}`}>
       <body>
-        <header className="app">
-          <Link href="/">Paybook</Link>
-          <nav>
-            <Link href="/lab">Sepolia lab</Link>
-            <Link href="/company">Company</Link>
-            <Link href="/me">Employee</Link>
-            <Link href="/audit">Auditor</Link>
-            <Link href="/evidence">Evidence</Link>
-          </nav>
-        </header>
-        {children}
+        <SiteFrame>{children}</SiteFrame>
       </body>
     </html>
   );
