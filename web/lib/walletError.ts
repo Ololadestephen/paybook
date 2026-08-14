@@ -40,6 +40,9 @@ export function hintForShieldError(raw: string): string {
   if (s.includes("user_refused") || s.includes("rejected")) {
     return "The wallet prompt was rejected.";
   }
+  if (s.includes("internal server error") || s.includes("strk20prepare") || s.includes("httpstatus\":500")) {
+    return "Ready's privacy backend crashed (privacy.strk20Prepare, HTTP 500). That is their server, not a bad deposit payload. Try the official app on the same network. If that also 500s, Ready's Sepolia proving path is down — use a tiny mainnet shield in their app, or wait.";
+  }
   if (s.includes("unknown_error")) {
     return "Ready hid the cause. Usual fixes: switch Ready to Sepolia (a new account), faucet Sepolia STRK, confirm the account is deployed, update Ready, then try the official app once.";
   }

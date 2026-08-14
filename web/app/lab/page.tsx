@@ -21,6 +21,8 @@ export default function LabPage() {
   const [busy, setBusy] = useState(false);
   const [balances, setBalances] = useState("");
   const [diag, setDiag] = useState("");
+  const [deployed, setDeployed] = useState<boolean | null>(null);
+  const [pubStrk, setPubStrk] = useState<string>("");
 
   function push(r: Receipt) {
     setLog((prev) => [r, ...prev]);
@@ -48,9 +50,11 @@ export default function LabPage() {
         lines.push("could not read wallet API versions");
       }
       try {
-        const deployed = await accountDeployed(address);
-        lines.push(deployed ? "account is deployed on Sepolia" : "account is NOT deployed on Sepolia — faucet STRK first");
+        const isDeployed = await accountDeployed(address);
+        if (!cancelled) setDeployed(isDeployed);
+        lines.push(isDeployed ? "account is deployed on Sepolia" : "account is NOT deployed on Sepolia — faucet STRK first");
         const pub = await publicStrkBalance(address);
+        if (!cancelled) setPubStrk(fmtStrk(pub));
         lines.push(`public STRK ${fmtStrk(pub)}`);
         if (pub < ONE_STRK) lines.push("need at least 1 public STRK plus gas");
       } catch (e) {
@@ -81,9 +85,10 @@ export default function LabPage() {
       try {
         await account.strk20PrepareInvoke(actions, true);
       } catch (prep) {
+        const raw = formatWalletError(prep);
         push({
           title: `${title} rejected in prepare`,
-          note: `${formatWalletError(prep)}\n${hintForShieldError(formatWalletError(prep))}`,
+          note: `${raw}\n${hintForShieldError(raw)}`,
           ok: false,
         });
         return;
@@ -100,8 +105,28 @@ export default function LabPage() {
     }
   }
 
+  async function invokeOnly(actions: WALLET_API.STRK20_ACTION[], title: string, amount: string) {
+    if (!account) return;
+    setBusy(true);
+    try {
+      const { transaction_hash } = await account.strk20InvokeTransaction(actions);
+      push({ title: `${title} submitted (${amount})`, hash: transaction_hash, ok: true });
+      await makeProvider().waitForTransaction(transaction_hash, { retries: 200, retryInterval: 3000 });
+      push({ title: `${title} confirmed`, hash: transaction_hash, ok: true });
+    } catch (e) {
+      const raw = formatWalletError(e);
+      push({ title: `${title} failed`, note: `${raw}\n${hintForShieldError(raw)}`, ok: false });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const deposit: WALLET_API.STRK20_ACTION[] = [
+    { type: "deposit", token: TOKEN, amount: num.toHex(ONE_STRK) },
+  ];
+
   async function shield() {
-    await submit([{ type: "deposit", token: TOKEN, amount: num.toHex(ONE_STRK) }], "Shield", "1 STRK");
+    await submit(deposit, "Shield", "1 STRK");
   }
 
   async function selfTransfer() {
@@ -157,6 +182,19 @@ export default function LabPage() {
             </li>
           </ol>
           <p className="hint mono break">Pool {net.pool}</p>
+          {connected && address && (
+            <p>
+              Account:{" "}
+              <b className={deployed === false ? "bad" : deployed ? "ok" : ""}>
+                {deployed === null ? "checking…" : deployed ? "deployed on Sepolia" : "not deployed"}
+              </b>
+              {pubStrk !== "" && ` · public ${pubStrk} STRK`}
+              <br />
+              <a href={net.explorerAddr(address)} target="_blank" rel="noreferrer">
+                Open this account on Sepolia Voyager
+              </a>
+            </p>
+          )}
           {diag && <pre className="hint break">{diag}</pre>}
         </div>
         <div className="card">
@@ -164,6 +202,14 @@ export default function LabPage() {
           <p>
             <button type="button" disabled={!connected || busy} onClick={shield}>
               Shield 1 STRK
+            </button>{" "}
+            <button
+              className="ghost"
+              type="button"
+              disabled={!connected || busy}
+              onClick={() => invokeOnly(deposit, "Shield (no prepare)", "1 STRK")}
+            >
+              Shield without prepare
             </button>{" "}
             <button type="button" disabled={!connected || busy} onClick={selfTransfer}>
               Private self-transfer 1 STRK
